@@ -1,5 +1,4 @@
 import { createSelector } from "redux-bundler";
-import xhr from "xhr";
 
 const getTokenPart = function (token, part) {
   const splitToken = token.split(".");
@@ -57,26 +56,25 @@ export default (opts) => {
         });
       } else {
         const url = store.selectAuthUrl();
-        //@todo move to fetch api at some point
-        try {
-          xhr(url, (err, response, body) => {
-            if (err) {
-              throw new Error("Login Response not ok");
-            } else {
-              const token = typeof body === "string" ? body : JSON.parse(body);
-              dispatch({
-                type: "AUTH_LOGGED_IN",
-                payload: { token: token, error: null, shouldVerifyToken: true },
-              });
-            }
+
+        fetch(url)
+          .then(response => response.status < 400 ? response.json() : Promise.reject(response))
+          .then(json => {
+            const token = typeof json === 'string' ? json : JSON.parse(json);
+
+            dispatch({
+              type: 'AUTH_LOGGED_IN',
+              payload: { token: token, error: null, shouldVerifyToken: true },
+            });
+          })
+          .catch(error => {
+            if (process.env.NODE_ENV === "development") console.error(error);
+
+            dispatch({
+              type: "AUTH_ERROR",
+              payload: { msg: "Error Logging In", err: error },
+            });
           });
-        } catch (err) {
-          if (process.env.NODE_ENV === "development") console.error(err);
-          dispatch({
-            type: "AUTH_ERROR",
-            payload: { msg: "Error Logging In", err: err },
-          });
-        }
       }
     },
 
