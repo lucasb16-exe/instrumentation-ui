@@ -31,8 +31,7 @@
     "react-plotly.js": "^2.4.0",
     "react-scripts": "3.4.0",
     "redux-bundler": "^27.0.1",
-    "redux-bundler-react": "^1.2.0",
-    "xhr": "^2.5.0"
+    "redux-bundler-react": "^1.2.0"
   },
   "scripts": {
     "start": "react-scripts start",
