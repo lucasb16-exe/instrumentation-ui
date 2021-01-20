@@ -1,17 +1,17 @@
-import React, { useState, useRef } from "react";
-import { connect } from "redux-bundler-react";
+import React, { useState, useRef } from 'react';
+import { connect } from 'redux-bundler-react';
 
 export default connect(
-  "selectInstrumentsByRoute",
-  "selectInstrumentTimeseriesItems",
-  "selectTimeseriesMeasurementsItemsObject",
-  "doInstrumentsSave",
+  'selectInstrumentsByRoute',
+  'selectInstrumentTimeseriesItemsByRoute',
+  'selectTimeseriesMeasurementsItemsObject',
+  'doInstrumentsSave',
   ({
     instrumentsByRoute: instrument,
-    instrumentTimeseriesItems: timeseries,
+    instrumentTimeseriesItemsByRoute: timeseries,
     doInstrumentsSave,
   }) => {
-    const [formula, setFormula] = useState(instrument.formula || "");
+    const [formula, setFormula] = useState(instrument.formula || '');
     const input = useRef(null);
 
     const insertParam = (param) => {
@@ -37,48 +37,43 @@ export default connect(
           using a combination of series and constants.
         </p>
         Available parameters
-        <div className="row">
-          <div className="col-3">
-            <ul className="list-group">
-              {timeseries.map((ts, i) => {
-                return (
-                  <li
-                    key={i}
-                    className="list-group-item list-group-item-action"
-                    onDoubleClick={() => {
-                      insertParam(`[${ts.slug}]`);
-                    }}
-                  >
-                    {ts.slug}
-                  </li>
-                );
-              })}
+        <div className='row'>
+          <div className='col-3'>
+            <ul className='list-group'>
+              {timeseries.map((ts, i) => (
+                <li
+                  key={i}
+                  className='list-group-item list-group-item-action noselect'
+                  onDoubleClick={() => insertParam(`[${ts.variable}]`)}
+                >
+                  {ts.slug}
+                </li>
+              ))}
             </ul>
           </div>
-          <div className="col">
+          <div className='col'>
             <textarea
               ref={input}
-              className="form-control"
+              className='form-control'
               value={formula}
-              onChange={(e) => {
-                setFormula(e.target.value);
-              }}
+              onChange={(e) => setFormula(e.target.value)}
               rows={6}
             />
-            <div className="float-right mt-2">
+            <div className='float-right mt-2'>
               <button
                 onClick={() => {
-                  setFormula(instrument.formula || "");
+                  setFormula(instrument.formula || '');
                 }}
-                className="btn btn-sm btn-secondary mr-1"
+                className='btn btn-sm btn-secondary mr-1'
+                title='Cancel'
               >
                 Cancel
               </button>
-              <button onClick={handleSave} className="btn btn-sm btn-success">
+              <button onClick={handleSave} className='btn btn-sm btn-success' title='Save Formula'>
                 Save
               </button>
             </div>
-            <small className="hidden text-danger">Error parsing formula</small>
+            <small className='hidden text-danger'>Error parsing formula</small>
           </div>
         </div>
       </div>

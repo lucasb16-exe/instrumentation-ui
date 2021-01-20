@@ -1,154 +1,138 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React from "react";
-import { connect } from "redux-bundler-react";
-import Navbar from "../../app-components/navbar";
-import InstrumentGroupTable from "./instrument-group-table";
-import InstrumentTable from "./instrument-table";
-import InstrumentForm from "./instrument-form";
-import InstrumentGroupForm from "./instrument-group-form";
-import Pager from "../../app-components/pager";
-import RoleFilter from "../../app-components/role-filter";
-import LoginMessage from "../../app-components/login-message";
+import React, { useState } from 'react';
+import { connect } from 'redux-bundler-react';
+
+import CollectionGroupTable from './collection-group-table';
+import CollectionGroupForm from './collection-group-form';
+import InstrumentForm from './instrument-form';
+import InstrumentGroupForm from './instrument-group-form';
+import InstrumentGroupTable from './instrument-group-table';
+import InstrumentTable from './instrument-table';
+import LoginMessage from '../../app-components/login-message';
+import Navbar from '../../app-components/navbar';
+import Pager from '../../app-components/pager';
+import RoleFilter from '../../app-components/role-filter';
+import SearchBar from '../home/search-bar';
+import Tab from '../../app-components/tab';
+
+const filterItems = (filter, items) => {
+  const filtered = items.filter((item) => {
+    return Object.values(item)
+      .join(' ')
+      .toUpperCase()
+      .indexOf(filter.toUpperCase()) !== -1
+  });
+
+  return filtered;
+};
 
 export default connect(
-  "selectProjectsByRoute",
-  "selectInstrumentGroupsItems",
-  "selectInstrumentsItems",
-  "selectKeyValState",
-  "doModalOpen",
-  "doKeyValSet",
+  'selectProjectsByRoute',
+  'selectInstrumentGroupsItems',
+  'selectInstrumentsItems',
+  'selectCollectionGroupItems',
+  'doModalOpen',
   ({
     projectsByRoute: project,
     instrumentGroupsItems: groups,
     instrumentsItems: instruments,
-    keyValState,
+    collectionGroupItems: collectionGroups,
     doModalOpen,
-    doKeyValSet,
   }) => {
     if (!project) return null;
-    let { tab, filter } = keyValState;
-    if (!tab) tab = "grp";
-    if (!filter) filter = "";
 
-    const setTab = (newTab) => {
-      doKeyValSet({ tab: newTab });
+    const [filter, setFilter] = useState('');
+    const [form, setForm] = useState('Instrument Groups');
+    const forms = {
+      'Instrument Groups': InstrumentGroupForm,
+      'All Instruments': InstrumentForm,
+      'Collection Groups': CollectionGroupForm,
     };
-
-    const setFilter = (newFitler) => {
-      doKeyValSet({ filter: newFitler });
-    };
+    const data = {
+      'Instrument Groups': filterItems(filter, groups),
+      'All Instruments': filterItems(filter, instruments),
+      'Collection Groups': filterItems(filter, collectionGroups),
+    }
 
     const handleAdd = () => {
-      tab === "grp"
-        ? doModalOpen(InstrumentGroupForm)
-        : doModalOpen(InstrumentForm);
+      doModalOpen(forms[form]);
     };
-    return (
-      <div>
-        <Navbar theme="primary" />
-        <section className="container mt-3">
-          <div className="card">
-            <div className="card-header pb-0" style={{ borderBottom: "none" }}>
-              <ul className="nav nav-tabs">
-                <li
-                  onClick={() => {
-                    setTab("grp");
-                  }}
-                  className="nav-item pointer"
-                >
-                  <span className={`nav-link ${tab === "grp" ? "active" : ""}`}>
-                    <strong>Instrument Groups</strong>
-                  </span>
-                </li>
-                <li
-                  onClick={() => {
-                    setTab("all");
-                  }}
-                  className="nav-item pointer"
-                >
-                  <span className={`nav-link ${tab === "all" ? "active" : ""}`}>
-                    <strong>All Instruments</strong>
-                  </span>
-                </li>
-              </ul>
-            </div>
-            <div className="card-body">
-              <div className="row">
-                <div className="col-10">
-                  <div className="form-group">
-                    <div className="input-group">
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Filter list..."
-                        value={filter}
-                        onChange={(e) => {
-                          setFilter(e.target.value);
-                        }}
-                      />
-                      <div className="input-group-append">
-                        <span
-                          title="Clear Filter"
-                          className="input-group-text pointer"
-                          onClick={() => {
-                            setFilter("");
-                          }}
-                        >
-                          <i className="mdi mdi-close"></i>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
-                <div className="col-2">
-                  <div className="float-right">
-                    <RoleFilter
-                      allowRoles={[`${project.slug.toUpperCase()}.*`]}
-                      alt={LoginMessage}
-                    >
-                      <button onClick={handleAdd} className="btn btn-primary">
-                        Add New
-                      </button>
-                    </RoleFilter>
-                  </div>
-                </div>
-              </div>
-              {tab === "grp" ? (
-                <Pager
-                  itemsKey="groups"
-                  items={groups.filter((item) => {
-                    if (!filter) return true;
-                    return (
-                      Object.values(item)
-                        .join(" ")
-                        .toUpperCase()
-                        .indexOf(filter.toUpperCase()) !== -1
-                    );
-                  })}
-                >
-                  <InstrumentGroupTable />
-                </Pager>
-              ) : (
-                <Pager
-                  itemsKey="instruments"
-                  items={instruments.filter((item) => {
-                    if (!filter) return true;
-                    return (
-                      Object.values(item)
-                        .join(" ")
-                        .toUpperCase()
-                        .indexOf(filter.toUpperCase()) !== -1
-                    );
-                  })}
-                >
-                  <InstrumentTable />
-                </Pager>
-              )}
-            </div>
+    const commonContent = () => (
+      <div className='row'>
+        <div className='col-10'>
+          <SearchBar value={filter} onChange={e => setFilter(e)} placeholder='Filter List...' />
+        </div>
+        <div className='col-2'>
+          <div className='float-right'>
+            <RoleFilter
+              allowRoles={[`${project.slug.toUpperCase()}.*`]}
+              alt={LoginMessage}
+            >
+              <button onClick={() => handleAdd()} className='btn btn-primary'>
+                Add New
+              </button>
+            </RoleFilter>
           </div>
-        </section>
+        </div>
       </div>
+    );
+
+    const tabs = [{
+      title: 'Instrument Groups',
+      content: (
+        <>
+          {commonContent()}
+          <Pager
+            itemsKey='groups'
+            items={data[form]}
+          >
+            <InstrumentGroupTable />
+          </Pager>
+        </>
+      ),
+    }, {
+      title: 'All Instruments',
+      content: (
+        <>
+          {commonContent()}
+          <Pager
+            itemsKey='instruments'
+            items={data[form]}
+          >
+            <InstrumentTable />
+          </Pager>
+        </>
+      ),
+    }, {
+      title: 'Collection Groups',
+      content: (
+        <>
+          {commonContent()}
+          <Pager
+            itemsKey="collectionGroups"
+            items={data[form]}
+          >
+            <CollectionGroupTable />
+          </Pager>
+        </>
+      )
+    }];
+
+    return (
+      <>
+        <Navbar theme='primary' />
+        <div className='container mt-3'>
+          <div className='card'>
+            <Tab.Container
+              tabs={tabs}
+              onTabChange={(title) => { setForm(title); setFilter(''); }}
+              tabListClass='card-header pb-0'
+              contentClass='card-body'
+            />
+          </div>
+        </div>
+      </>
     );
   }
 );

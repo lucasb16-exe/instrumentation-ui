@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { connect } from "redux-bundler-react";
 
+import { ModalFooter, ModalHeader } from "../../app-components/modal";
+
 export default connect(
   "doModalClose",
   "doInstrumentGroupInstrumentsSave",
@@ -38,12 +40,7 @@ export default connect(
     return (
       <div className="modal-content">
         <form id="instrument-picker" onSubmit={handleSave}>
-          <header className="modal-header">
-            <h5 className="modal-title">Choose Instrument</h5>
-            <span className="pointer" onClick={doModalClose}>
-              <i className="mdi mdi-close-circle-outline"></i>
-            </span>
-          </header>
+          <ModalHeader title='Choose Instrument' />
           <section className="modal-body">
             <div className="form-group">
               <label>Type</label>
@@ -65,21 +62,12 @@ export default connect(
               </select>
             </div>
           </section>
-          <footer className="modal-footer">
-            <button type="submit" className="btn btn-primary mr-2">
-              Save changes
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                doModalClose();
-              }}
-              className="btn btn-secondary"
-            >
-              Cancel
-            </button>
-          </footer>
+          <ModalFooter
+            saveIsSubmit
+            customClosingLogic
+            saveText='Save changes'
+            onCancel={() => doModalClose()}
+          />
         </form>
       </div>
     );

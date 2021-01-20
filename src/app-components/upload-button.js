@@ -1,29 +1,55 @@
-import React, { useRef } from "react";
-import { connect } from "redux-bundler-react";
+import React, { useRef } from 'react';
+import { connect } from 'redux-bundler-react';
 
-export default connect("doUploadQueueCsv", ({ doUploadQueueCsv }) => {
-  const inputEl = useRef(null);
+import Button from './button';
 
-  const handleClick = (e) => {
-    inputEl.current.click();
-  };
+export default connect(
+  'doUploadQueueCsv',
+  'doUploadSettingsClear',
+  ({
+    doUploadQueueCsv,
+    doUploadSettingsClear,
+    text = 'Choose File',
+    icon = 'mdi-cloud-upload',
+    buttonClass = '',
+    clearSettings = true,
+  }) => {
+    const inputEl = useRef(null);
 
-  const handleInputChange = (e) => {
-    doUploadQueueCsv(inputEl.current.files[0]);
-  };
+    const handleClick = (_e) => {
+      inputEl.current.click();
+    };
 
-  return (
-    <>
-      <button className="btn btn-success" onClick={handleClick}>
-        <i className="mdi mdi-cloud-upload pr-2"></i> Choose File
-      </button>
-      <input
-        accept=".csv"
-        style={{ display: "none" }}
-        ref={inputEl}
-        type="file"
-        onChange={handleInputChange}
-      ></input>
-    </>
-  );
-});
+    const handleInputChange = (_e) => {
+      if (clearSettings) doUploadSettingsClear();
+      
+      doUploadQueueCsv(inputEl.current.files[0]);
+    };
+
+    const iconClassNames = [
+      'mdi',
+      `${icon}`,
+      'pr-2',
+    ].join(' ');
+
+    return (
+      <>
+        <Button
+          className={buttonClass}
+          handleClick={handleClick}
+          variant='success'
+          size='small'
+          text={text}
+          icon={<i className={iconClassNames} />}
+        />
+        <input
+          accept='.csv'
+          style={{ display: 'none' }}
+          ref={inputEl}
+          type='file'
+          onChange={handleInputChange}
+        />
+      </>
+    );
+  },
+);

@@ -1,20 +1,22 @@
 /* eslint-disable no-mixed-operators */
-import React, { useState, useEffect } from "react";
-import { connect } from "redux-bundler-react";
+import React, { useState, useEffect } from 'react';
+import { connect } from 'redux-bundler-react';
+
+import { ModalFooter, ModalHeader } from '../../app-components/modal';
 
 export default connect(
-  "selectInstrumentsByRoute",
-  "doModalClose",
-  "doAlertsSave",
+  'selectInstrumentsByRoute',
+  'doModalClose',
+  'doAlertConfigsSave',
   ({
     instrumentsByRoute: instrument,
     doModalClose,
-    doAlertsSave,
+    doAlertConfigsSave,
     item = {},
   }) => {
-    const [name, setName] = useState((item && item.name) || "");
+    const [name, setName] = useState((item && item.name) || '');
     const [instrumentId, setInstrumentId] = useState(
-      (instrument && instrument.id) || ""
+      (instrument && instrument.id) || ''
     );
 
     useEffect(() => {
@@ -23,13 +25,13 @@ export default connect(
 
     const handleSave = (e) => {
       e.preventDefault();
-      doAlertsSave(
+      doAlertConfigsSave(
         Object.assign({}, item, {
           name: name,
           instrument_id: instrumentId,
-          body: "",
-          formula: "",
-          schedule: "",
+          body: '',
+          formula: '',
+          schedule: '',
         }),
         doModalClose,
         true
@@ -37,45 +39,26 @@ export default connect(
     };
 
     return (
-      <div className="modal-content" style={{ overflowY: "auto" }}>
-        <form id="alert-form" onSubmit={handleSave}>
-          <header className="modal-header">
-            <h5 className="modal-title">Create Alert</h5>
-            <span className="pointer" onClick={doModalClose}>
-              <i className="mdi mdi-close-circle-outline"></i>
-            </span>
-          </header>
-          <section className="modal-body">
-            <div className="form-group">
+      <div className='modal-content' style={{ overflowY: 'auto' }}>
+        <form id='alert-form' onSubmit={handleSave}>
+          <ModalHeader title='Create Alert' />
+          <section className='modal-body'>
+            <div className='form-group'>
               <label>Name</label>
               <input
                 value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                }}
-                className="form-control"
-                type="text"
-                placeholder="Name"
+                onChange={(e) => setName(e.target.value)}
+                className='form-control'
+                type='text'
+                placeholder='Name'
               />
             </div>
           </section>
-          <footer className="modal-footer d-flex justify-content-between align-items-center">
-            <div>
-              <button type="submit" className="btn btn-primary mr-2">
-                Save changes
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  doModalClose();
-                }}
-                className="btn btn-secondary"
-              >
-                Cancel
-              </button>
-            </div>
-          </footer>
+          <ModalFooter
+            saveIsSubmit
+            showCancelButton
+            saveText='Save changes'
+          />
         </form>
       </div>
     );

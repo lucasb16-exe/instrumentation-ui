@@ -1,82 +1,22 @@
 import React, { useState } from "react";
 import { connect } from "redux-bundler-react";
+
 import DomainSelect from "../../../app-components/domain-select";
-
-const DeleteButton = connect(
-  "doInstrumentConstantsDelete",
-  "doModalClose",
-  "doUpdateUrlWithHomepage",
-  "selectRouteParams",
-
-  ({
-    doInstrumentConstantsDelete,
-    doModalClose,
-    doUpdateUrlWithHomepage,
-    routeParams,
-    item,
-  }) => {
-    const [isConfirming, setIsConfirming] = useState(false);
-    if (!item || !item.id) return null;
-
-    const handleDelete = () => {
-      setIsConfirming(false);
-      doInstrumentConstantsDelete(
-        item,
-        () => {
-          doModalClose();
-        },
-        true
-      );
-    };
-
-    return (
-      <>
-        {isConfirming ? (
-          <div className="btn-group">
-            <button
-              title="Confirm"
-              className="btn btn-danger"
-              onClick={handleDelete}
-            >
-              Confirm
-            </button>
-            <button
-              title="Cancel"
-              className="btn btn-secondary"
-              onClick={() => {
-                setIsConfirming(false);
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <button
-            title="Remove from Group"
-            onClick={() => {
-              setIsConfirming(true);
-            }}
-            className="btn btn-danger"
-          >
-            Delete
-          </button>
-        )}
-      </>
-    );
-  }
-);
+import { ModalFooter, ModalHeader } from "../../../app-components/modal";
 
 export default connect(
   "doModalClose",
   "doInstrumentConstantsSave",
   "doInstrumentsSave",
+  "doInstrumentConstantsDelete",
   "selectInstrumentsByRoute",
   ({
     doModalClose,
     doInstrumentConstantsSave,
     doInstrumentsSave,
-    item,
+    doInstrumentConstantsDelete,
     instrumentsByRoute: instrument,
+    item,
   }) => {
     const [name, setName] = useState((item && item.name) || "");
     const [instrument_id] = useState(instrument.id);
@@ -105,23 +45,24 @@ export default connect(
       );
     };
 
+    const handleDelete = (e) => {
+      e.preventDefault();
+
+      if (item && item.id) {
+        doInstrumentConstantsDelete(item, () => doModalClose(), true)
+      }
+    }
+
     return (
       <div className="modal-content" style={{ overflowY: "auto" }}>
         <form id="instrument-constant-form" onSubmit={handleSave}>
-          <header className="modal-header">
-            <h5 className="modal-title">Edit Constant</h5>
-            <span className="pointer" onClick={doModalClose}>
-              <i className="mdi mdi-close-circle-outline"></i>
-            </span>
-          </header>
+          <ModalHeader title='Edit Constant' />
           <section className="modal-body">
             <div className="form-group">
               <label>Name</label>
               <input
                 value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                }}
+                onChange={(e) => setName(e.target.value)}
                 className="form-control"
                 type="text"
                 placeholder="Text input"
@@ -131,9 +72,7 @@ export default connect(
               <label>Parameter</label>
               <DomainSelect
                 value={parameter_id}
-                onChange={(e) => {
-                  setParameterId(e.target.value);
-                }}
+                onChange={(val) => setParameterId(val)}
                 domain="parameter"
               />
             </div>
@@ -141,40 +80,18 @@ export default connect(
               <label>Unit</label>
               <DomainSelect
                 value={unit_id}
-                onChange={(e) => {
-                  setUnitId(e.target.value);
-                }}
+                onChange={(val) => setUnitId(val)}
                 domain="unit"
               />
             </div>
           </section>
-          <footer
-            className="modal-footer"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <div>
-              <button type="submit" className="btn btn-primary mr-2">
-                Save changes
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  doModalClose();
-                }}
-                className="btn btn-secondary"
-              >
-                Cancel
-              </button>
-            </div>
-            <div>
-              <DeleteButton item={item} />
-            </div>
-          </footer>
+          <ModalFooter
+            saveIsSubmit
+            customClosingLogic
+            saveText='Save changes'
+            onCancel={() => doModalClose()}
+            onDelete={handleDelete}
+          />
         </form>
       </div>
     );

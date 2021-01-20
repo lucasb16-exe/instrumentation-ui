@@ -5,15 +5,11 @@ export default createRestBundle({
   name: "alerts",
   uid: "id",
   prefetch: false,
-  staleAfter: 10000,
+  staleAfter: 0,
   persist: false,
   routeParam: "id",
-  getTemplate: "/projects/:projectId/instruments/:instrumentId/alerts", // "/:" disables any accidental trigger of a fetch
-  putTemplate:
-    "/:/projects/:projectId/instruments/:instrumentId/alerts/:item.id",
-  postTemplate: "/projects/:projectId/instruments/:instrumentId/alerts",
-  deleteTemplate: "/:",
-  fetchActions: ["URL_UPDATED", "AUTH_LOGGED_IN", "INSTRUMENTS_FETCH_FINISHED"],
+  getTemplate: "/projects/:projectId/instruments/:instrumentId/alerts",
+  fetchActions: ["URL_UPDATED", "AUTH_LOGGED_IN", "INSTRUMENTS_FETCH_FINISHED", "ALERTREAD_SAVE_FINISHED", "ALERTUNREAD_SAVE_FINISHED"],
   urlParamSelectors: ["selectProjectsIdByRoute", "selectInstrumentsIdByRoute"],
   addons: {
     selectAlertsByInstrumentId: createSelector(

@@ -1,75 +1,13 @@
 /* eslint-disable no-mixed-operators */
 import React, { useState, useEffect } from "react";
-import { connect } from "redux-bundler-react";
-import Map from "../../app-components/classMap";
-import DomainSelect from "../../app-components/domain-select";
 import DatePicker from "react-datepicker";
+import { connect } from "redux-bundler-react";
+
+import DomainSelect from "../../app-components/domain-select";
+import Map from "../../app-components/classMap";
+import { ModalFooter, ModalHeader } from "../../app-components/modal";
+
 import "react-datepicker/dist/react-datepicker.css";
-
-const DeleteButton = connect(
-  "doInstrumentsDelete",
-  "doModalClose",
-  "doUpdateUrlWithHomepage",
-  "selectRouteParams",
-  ({
-    doInstrumentsDelete,
-    doModalClose,
-    doUpdateUrlWithHomepage,
-    routeParams,
-    item,
-  }) => {
-    const [isConfirming, setIsConfirming] = useState(false);
-    if (!item || !item.id) return null;
-
-    const handleDelete = () => {
-      setIsConfirming(false);
-      doInstrumentsDelete(
-        item,
-        () => {
-          doModalClose();
-          if (routeParams.hasOwnProperty("instrumentSlug"))
-            doUpdateUrlWithHomepage("/manager");
-        },
-        true
-      );
-    };
-
-    return (
-      <>
-        {isConfirming ? (
-          <div className="btn-group">
-            <button
-              title="Confirm"
-              className="btn btn-danger"
-              onClick={handleDelete}
-            >
-              Confirm
-            </button>
-            <button
-              title="Cancel"
-              className="btn btn-secondary"
-              onClick={() => {
-                setIsConfirming(false);
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <button
-            title="Remove from Group"
-            onClick={() => {
-              setIsConfirming(true);
-            }}
-            className="btn btn-danger"
-          >
-            Delete
-          </button>
-        )}
-      </>
-    );
-  }
-);
 
 export default connect(
   "doModalClose",
@@ -79,6 +17,9 @@ export default connect(
   "doProjSetDisplayProjection",
   "doProjTransformFromLonLat",
   "doProjTransformToLonLat",
+  "doInstrumentsDelete",
+  "doUpdateUrlWithHomepage",
+  "selectRouteParams",
   "selectInstrumentDrawLon",
   "selectInstrumentDrawLat",
   "selectInstrumentDrawReady",
@@ -93,20 +34,23 @@ export default connect(
     doProjSetDisplayProjection,
     doProjTransformFromLonLat,
     doProjTransformToLonLat,
-    item = {},
+    doInstrumentsDelete,
+    doUpdateUrlWithHomepage,
+    routeParams,
     instrumentDrawLat,
     instrumentDrawLon,
     instrumentDrawReady,
     projDisplayProjection,
     projOptions,
     projectsByRoute: project,
+    item = {},
+    isEdit = true,
   }) => {
     const [name, setName] = useState((item && item.name) || "");
     const [type_id, setTypeId] = useState((item && item.type_id) || "");
     const [station, setStation] = useState((item && item.station) || "");
     const [offset, setOffset] = useState((item && item.offset) || "");
     const [project_id] = useState((item && item.project_id) || project.id);
-
     const [status_id, setStatusId] = useState((item && item.status_id) || "");
     const [status_time, setStatusTime] = useState(new Date());
 
@@ -116,18 +60,19 @@ export default connect(
             [instrumentDrawLon, instrumentDrawLat],
             projOptions[projDisplayProjection]
           )
-        : ["", ""];
+        : ['', ''];
 
     const [x, setX] = useState(projected[0]);
     const [y, setY] = useState(projected[1]);
 
     useEffect(() => {
-      if (!instrumentDrawReady || !item || !item.geometry) return undefined;
-      const geom = item.geometry;
-      const itemLon = geom.coordinates[0];
-      const itemLat = geom.coordinates[1];
-      doInstrumentDrawUpdateLoc({ lat: itemLat, lon: itemLon });
-      return doInstrumentDrawOnMapClose;
+      if (instrumentDrawReady  && item && item.geometry) {
+        const geom = item.geometry;
+        const itemLon = geom.coordinates[0];
+        const itemLat = geom.coordinates[1];
+        doInstrumentDrawUpdateLoc({ lat: itemLat, lon: itemLon });
+      }
+      return () => doInstrumentDrawOnMapClose;
     }, [
       instrumentDrawReady,
       doInstrumentDrawUpdateLoc,
@@ -172,6 +117,7 @@ export default connect(
         //     station === null || station === ""
         //   }`
         // );
+
         doInstrumentsSave(
           Object.assign({}, item, {
             name,
@@ -180,19 +126,19 @@ export default connect(
             status_id,
             status_time,
             station:
-              station === null || station === ""
+              station === null || station === ''
                 ? null
                 : isNaN(Number(station))
                 ? null
                 : Number(station),
             offset:
-              offset === null || offset === ""
+              offset === null || offset === ''
                 ? null
                 : isNaN(Number(offset))
                 ? null
                 : Number(offset),
             geometry: {
-              type: "Point",
+              type: 'Point',
               coordinates: [lonLat[0], lonLat[1]],
             },
           }),
@@ -201,6 +147,22 @@ export default connect(
         );
       }
     };
+
+    const handleDelete = (e) => {
+      e.preventDefault();
+
+      if (item && item.id) {
+        doInstrumentsDelete(
+          item,
+          () => {
+            doModalClose();
+            if (routeParams.hasOwnProperty("instrumentSlug"))
+              doUpdateUrlWithHomepage("/manager");
+          },
+          true
+        );
+      }
+    }
 
     const currentProj = projOptions[projDisplayProjection];
     const units = currentProj.getUnits();
@@ -222,12 +184,7 @@ export default connect(
     return (
       <div className="modal-content" style={{ overflowY: "auto" }}>
         <form id="instrument-form" onSubmit={handleSave}>
-          <header className="modal-header">
-            <h5 className="modal-title">Edit Instrument</h5>
-            <span className="pointer" onClick={doModalClose}>
-              <i className="mdi mdi-close-circle-outline"></i>
-            </span>
-          </header>
+          <ModalHeader title={`${isEdit ? 'Edit' : 'Add'} Instrument`} />
           <section className="modal-body">
             <div className="mb-3" style={{ position: "relative", height: 300 }}>
               <Map
@@ -237,12 +194,9 @@ export default connect(
             </div>
             <div className="form-group">
               <label>Name</label>
-
               <input
                 value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                }}
+                onChange={(e) => setName(e.target.value)}
                 className="form-control"
                 type="text"
                 placeholder="Name"
@@ -250,24 +204,11 @@ export default connect(
             </div>
             <div className="form-group">
               <label>Type</label>
-
-              <DomainSelect
-                value={type_id}
-                onChange={(e) => {
-                  setTypeId(e.target.value);
-                }}
-                domain="instrument_type"
-              />
+              <DomainSelect value={type_id} onChange={(val) => setTypeId(val)} domain="instrument_type" />
             </div>
             <div className="form-group">
               <label>Status</label>
-              <DomainSelect
-                value={status_id}
-                onChange={(e) => {
-                  setStatusId(e.target.value);
-                }}
-                domain="status"
-              />
+              <DomainSelect value={status_id} onChange={(val) => setStatusId(val)} domain="status" />
             </div>
             {statusHasChanged ? (
               <div className="form-group">
@@ -276,9 +217,7 @@ export default connect(
                   <DatePicker
                     className="form-control"
                     selected={status_time}
-                    onChange={(val) => {
-                      setStatusTime(val);
-                    }}
+                    onChange={(val) => setStatusTime(val)}
                     showTimeInput
                   />
                 </div>
@@ -286,12 +225,9 @@ export default connect(
             ) : null}
             <div className="form-group">
               <label>Station</label>
-
               <input
                 value={station}
-                onChange={(e) => {
-                  setStation(e.target.value);
-                }}
+                onChange={(e) => setStation(e.target.value)}
                 className="form-control"
                 type="number"
                 placeholder="Station"
@@ -299,17 +235,13 @@ export default connect(
             </div>
             <div className="form-group">
               <label>Offset</label>
-
               <input
                 value={offset}
-                onChange={(e) => {
-                  setOffset(e.target.value);
-                }}
+                onChange={(e) => setOffset(e.target.value)}
                 className="form-control"
                 type="number"
                 placeholder="Offset"
               />
-
               <small className="form-text text-muted">
                 Offset should be positive on land side, negative on water side
               </small>
@@ -317,7 +249,6 @@ export default connect(
 
             <div className="form-group">
               <label>Use Projection</label>
-
               <select
                 onChange={handleSetDisplayProjection}
                 value={projDisplayProjection}
@@ -341,9 +272,7 @@ export default connect(
               <input
                 data-key="x"
                 value={x}
-                onChange={(e) => {
-                  setX(e.target.value);
-                }}
+                onChange={(e) => setX(e.target.value)}
                 onBlur={handleLocUpdate}
                 className="form-control"
                 type="number"
@@ -360,9 +289,7 @@ export default connect(
               <input
                 data-key="y"
                 value={y}
-                onChange={(e) => {
-                  setY(e.target.value);
-                }}
+                onChange={(e) => setY(e.target.value)}
                 onBlur={handleLocUpdate}
                 className="form-control"
                 type="number"
@@ -372,33 +299,12 @@ export default connect(
               />
             </div>
           </section>
-          <footer
-            className="modal-footer"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <div>
-              <button type="submit" className="btn btn-primary mr-2">
-                Save changes
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  doModalClose();
-                }}
-                className="btn btn-secondary"
-              >
-                Cancel
-              </button>
-            </div>
-            <div>
-              <DeleteButton item={item} />
-            </div>
-          </footer>
+          <ModalFooter
+            saveIsSubmit
+            customClosingLogic
+            onCancel={() => doModalClose()}
+            onDelete={handleDelete}
+          />
         </form>
       </div>
     );

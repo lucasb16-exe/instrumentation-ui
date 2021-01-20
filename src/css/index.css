@@ -8,6 +8,14 @@
                                   supported by Chrome, Edge, Opera and Firefox */
 }
 
+.clamp-2 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
 .hidden {
   display: none;
 }
@@ -16,10 +24,24 @@
   cursor: pointer;
 }
 
+.not-allowed {
+  cursor: not-allowed !important;
+}
+
+.no-scroll {
+  overflow: hidden;
+}
+
 .overflow-ellipsis {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+footer.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .timeline-list-item {
@@ -90,4 +112,29 @@
 
 .ag-root-wrapper {
   overflow: visible;
+}
+
+.alert-container.unread {
+  border-left: 4px solid #0a59a3;
+}
+
+.close-notification {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 101;
+}
+
+.favorite {
+  position: absolute;
+  align-items: center;
+  background: transparent;
+  font-size: 20px;
+  top: 5px;
+  right: 0;
+  border: none;
+}
+
+.gold {
+  color: #FFD700;
 }

@@ -1,5 +1,7 @@
-import React from "react";
+import React from 'react';
 
-export default () => {
-  return <small className="has-text-weight-light">Login to add/edit</small>;
-};
+const LoginMessage = () => (
+  <small className='has-text-weight-light'>Login to add/edit</small>
+);
+
+export default LoginMessage;

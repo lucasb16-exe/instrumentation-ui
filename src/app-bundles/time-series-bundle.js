@@ -9,12 +9,15 @@ export default createRestBundle({
   persist: false,
   routeParam: "",
   getTemplate: "/timeseries",
-  putTemplate: "",
-  postTemplate: "",
-  deleteTemplate: "",
+  putTemplate: "/:",
+  postTemplate: "/timeseries",
+  deleteTemplate: "/timeseries/:item.id",
   fetchActions: ["URL_UPDATED", "AUTH_LOGGED_IN"],
-  forceFetchActions: ["INSTRUMENTCONSTANTS_SAVE_FINISHED"],
-  urlParamSelectors: ["selectInstrumentsIdByRoute"],
+  forceFetchActions: [
+    "INSTRUMENTCONSTANTS_SAVE_FINISHED",
+    "INSTRUMENTS_FETCH_FINISHED",
+  ],
+  urlParamSelectors: [],
   reduceFurther: (state, { type, payload }) => {
     if (type === "INSTRUMENTTIMESERIES_SET_ACTIVE_ID") {
       return Object.assign({}, state, payload);
@@ -43,7 +46,6 @@ export default createRestBundle({
         return { timeseriesId: id };
       }
     ),
-
     selectInstrumentTimeseriesByInstrumentId: createSelector(
       "selectInstrumentTimeseriesItems",
       (timeseries) => {
@@ -56,61 +58,47 @@ export default createRestBundle({
         return out;
       }
     ),
+    selectInstrumentTimeseriesByProjectId: createSelector(
+      "selectInstrumentTimeseriesItems",
+      (timeseries) => {
+        if (!timeseries || !timeseries.length) return {};
+        const out = {};
+        timeseries.forEach((ts) => {
+          if (!out.hasOwnProperty(ts.project_id)) out[ts.project_id] = [];
+          out[ts.project_id].push(ts);
+        });
+        return out;
+      }
+    ),
+    selectInstrumentTimeseriesItemsByRoute: createSelector(
+      "selectInstrumentsByRoute",
+      "selectProjectsByRoute",
+      "selectInstrumentTimeseriesByInstrumentId",
+      "selectInstrumentTimeseriesByProjectId",
+      (
+        instrument,
+        project,
+        timeseriesByInstrumentId,
+        timeseriesByProjectId
+      ) => {
+        // If on an instrument-specific page
+        if (
+          instrument &&
+          instrument.id &&
+          timeseriesByInstrumentId.hasOwnProperty(instrument.id)
+        ) {
+          return timeseriesByInstrumentId[instrument.id];
+        } // If on a project page
+        else if (
+          project &&
+          project.id &&
+          timeseriesByProjectId.hasOwnProperty(project.id)
+        ) {
+          return timeseriesByProjectId[project.id];
+        } else {
+          return [];
+        }
+      }
+    ),
   },
 });
-
-// let apiRoot = "http://localhost:3030";
-// export default {
-//   name: "timeseries",
-
-//   getReducer: () => {
-//     const initialData = {
-//       data: [],
-//       x: [],
-//       y: [],
-//       shouldFetch: true,
-//     };
-
-//     return (state = initialData, { type, payload }) => {
-//       switch (type) {
-//         case "TIME_SERIES_FETCH_STARTED":
-//         case "TIME_SERIES_FETCH_FINISHED":
-//           return Object.assign({}, state, payload);
-//         default:
-//           return state;
-//       }
-//     };
-//   },
-//   doTimeseriesFetch: (x) => ({ dispatch, store }) => {
-//     dispatch({
-//       type: "TIME_SERIES_FETCH_STARTED",
-//       payload: {
-//         shouldFetch: false,
-//       },
-//     });
-//     fetch(apiRoot + "/timeseries_measurements/")
-//       .then((response) => response.json())
-//       .then((j) =>
-//         dispatch({ type: "TIME_SERIES_FETCH_FINISHED", payload: { data: j } })
-//       );
-//   },
-
-//   selectTimeseriesX: (state) => {
-//     return state.timeseries.data.map((item) => {
-//       return new Date(item.time);
-//     });
-//   },
-
-//   selectTimeseriesY: (state) => {
-//     return state.timeseries.data.map((item) => {
-//       return item.value;
-//     });
-//   },
-
-//   reactTimeseriesShouldFetch: (state) => {
-//     if (state.timeseries.shouldFetch)
-//       return {
-//         actionCreator: "doTimeseriesFetch",
-//       };
-//   },
-// };
